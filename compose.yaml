@@ -1,0 +1,25 @@
+services:
+  scylla:
+    image: scylladb/scylla:latest
+    container_name: scylla-itec
+    ports:
+      - "9042:9042"
+      - "7000:7000"
+      - "7001:7001"
+      - "9160:9160"
+      - "9180:9180"
+    volumes:
+      - scylla_data:/var/lib/scylla
+    command: --smp 1 --memory 750M --developer-mode 1
+    networks:
+      - scylla_network
+  backend:
+    build: .
+    depends_on:
+      - scylla
+networks:
+  scylla_network:
+    driver: bridge
+
+volumes:
+  scylla_data:

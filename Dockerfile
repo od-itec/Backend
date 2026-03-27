@@ -1,8 +1,11 @@
-FROM python:3.15 AS base
-
-RUN --mount=type=cache,sharing=private,target=/root/.cache \
-  pip install -r requirements
+FROM python:3.12 AS base
+RUN pip install --upgrade pip
+WORKDIR /app
+RUN --mount=source=/requirements.txt,target=/app/requirements.txt \
+    --mount=type=cache,sharing=private,target=/root/.cache        \
+  pip install -r requirements.txt
 
 FROM base AS runtime
-# to be seen
-
+COPY --link .env .env
+COPY --link src/ .
+ENTRYPOINT [ "python", "main.py" ]
