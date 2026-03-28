@@ -55,7 +55,6 @@ services:
       DIND_IMAGE: itec-dind:latest
     ports:
       - "8000:8000"
-      - "11000-11099:11000-11099"   # user app preview ports
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     networks:
