@@ -52,6 +52,10 @@ services:
       SCYLLA_HOSTS: scylla
       SCYLLA_CONNECT_RETRIES: 20
       SCYLLA_RETRY_DELAY_SECONDS: 3
+    volumes:
+      - type: bind
+        source: /var/run/docker.sock
+        target: /var/run/docker.sock
     ports:
       - "8000:8000"
     networks:
