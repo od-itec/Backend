@@ -36,6 +36,12 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://itec:itec_secret@postgres:5432/itec_auth
       SCYLLA_HOSTS: scylla
+      K8S_NAMESPACE: itec-workspaces
+      POD_TIMEOUT_SECONDS: "120"
+      POD_CPU_LIMIT: "500m"
+      POD_MEMORY_LIMIT: "512Mi"
+      DEPLOY_REGISTRY: "localhost:5000"
+      BUILDPACK_BUILDER: "gcr.io/buildpacks/builder:google-22"
     ports:
       - "8000:8000"
     networks:

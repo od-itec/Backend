@@ -8,6 +8,9 @@ from schemas import UserCreate, UserRead, UserUpdate
 from user_db import User, create_db_and_tables
 from db import init_database
 from file_routes import router as file_router
+from workspace_routes import router as workspace_router
+from terminal_routes import router as terminal_router
+from deploy_routes import router as deploy_router
 
 
 @asynccontextmanager
@@ -53,6 +56,9 @@ app.include_router(
     tags=["users"],
 )
 app.include_router(file_router)
+app.include_router(workspace_router)
+app.include_router(terminal_router)
+app.include_router(deploy_router)
 
 
 @app.get("/health")

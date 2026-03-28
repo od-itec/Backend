@@ -25,30 +25,43 @@ class Database:
         return cls._instance
     
     def connect(self):
-        """Connect to Database"""
-        try:
-            hosts = os.getenv("SCYLLA_HOSTS", "localhost").split(",")
-            port = int(os.getenv("SCYLLA_PORT", "9042"))
-            
-            # Create cluster connection
-            self._cluster = Cluster(
-                hosts,
-                port=port,
-                load_balancing_policy=DCAwareRoundRobinPolicy(local_dc='datacenter1')
-            )
-            
-            self._session = self._cluster.connect()
-            self._session.row_factory = dict_factory
-            
-            # Initialize keyspace and tables
-            self._init_keyspace()
-            self._init_tables()
-            
-            logger.info("Successfully connected to Database")
-            
-        except Exception as e:
-            logger.error(f"Failed to connect to Database: {e}")
-            raise
+        """Connect to Database, retrying until ScyllaDB is ready."""
+        import time
+        hosts = os.getenv("SCYLLA_HOSTS", "localhost").split(",")
+        port = int(os.getenv("SCYLLA_PORT", "9042"))
+
+        max_retries = 20
+        retry_delay = 5  # seconds
+
+        for attempt in range(1, max_retries + 1):
+            try:
+                self._cluster = Cluster(
+                    hosts,
+                    port=port,
+                    load_balancing_policy=DCAwareRoundRobinPolicy(local_dc='datacenter1')
+                )
+                self._session = self._cluster.connect()
+                self._session.row_factory = dict_factory
+
+                self._init_keyspace()
+                self._init_tables()
+
+                logger.info("Successfully connected to Database")
+                return
+
+            except Exception as e:
+                logger.warning(f"ScyllaDB not ready (attempt {attempt}/{max_retries}): {e}")
+                if self._cluster:
+                    try:
+                        self._cluster.shutdown()
+                    except Exception:
+                        pass
+                    self._cluster = None
+                    self._session = None
+                if attempt == max_retries:
+                    logger.error("Max retries reached. Could not connect to ScyllaDB.")
+                    raise
+                time.sleep(retry_delay)
     
     def _init_keyspace(self):
         """Create keyspace if not exists"""

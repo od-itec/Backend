@@ -8,4 +8,4 @@ RUN --mount=source=/requirements.txt,target=/app/requirements.txt \
 FROM base AS runtime
 COPY --link .env .env
 COPY --link src/ .
-ENTRYPOINT [ "python", "main.py" ]
+ENTRYPOINT [ "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000" ]
