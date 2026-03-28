@@ -1,0 +1,23 @@
+# Custom Docker-in-Docker image with pack CLI pre-installed.
+# Builder images are NOT pre-pulled (lazy pull on first build).
+
+FROM docker:dind
+
+RUN apk add --no-cache \
+    bash \
+    curl \
+    git \
+    wget \
+    tar \
+    ca-certificates \
+    && rm -rf /var/cache/apk/*
+
+# Install pack CLI (Cloud Native Buildpacks)
+ARG PACK_VERSION=0.35.1
+RUN wget -qO- "https://github.com/buildpacks/pack/releases/download/v${PACK_VERSION}/pack-v${PACK_VERSION}-linux.tgz" \
+    | tar xz -C /usr/local/bin/
+
+# Create default workspace directory
+RUN mkdir -p /workspace
+
+VOLUME /workspace

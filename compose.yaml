@@ -52,10 +52,24 @@ services:
       SCYLLA_HOSTS: scylla
       SCYLLA_CONNECT_RETRIES: 20
       SCYLLA_RETRY_DELAY_SECONDS: 3
+      DIND_IMAGE: itec-dind:latest
     ports:
       - "8000:8000"
+      - "11000-11099:11000-11099"   # user app preview ports
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
     networks:
       - scylla_network
+
+  # Build the custom DinD image once
+  dind-builder:
+    build:
+      context: ./docker
+      dockerfile: Dockerfile.dind
+    image: itec-dind:latest
+    entrypoint: ["echo", "DinD image built successfully"]
+    profiles:
+      - build
 
 networks:
   scylla_network:
