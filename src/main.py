@@ -8,13 +8,24 @@ from schemas import UserCreate, UserRead, UserUpdate
 from user_db import User, create_db_and_tables
 from db import init_database
 from file_routes import router as file_router
+from workspace_routes import router as workspace_router
+from terminal_routes import router as terminal_router
+from deploy_routes import router as deploy_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await create_db_and_tables()
     init_database()
+
+    # Start DinD idle-cleanup background task
+    from dind_manager import dind_manager
+    await dind_manager.start_cleanup_loop()
+
     yield
+
+    # Shutdown: stop all DinD containers
+    await dind_manager.shutdown()
 
 
 app = FastAPI(
@@ -29,6 +40,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "http://localhost:5173",
+        "http://localhost:5174",
         "https://itecify.onlinedi.vision",
     ],
     allow_credentials=True,
@@ -53,6 +65,9 @@ app.include_router(
     tags=["users"],
 )
 app.include_router(file_router)
+app.include_router(workspace_router)
+app.include_router(terminal_router)
+app.include_router(deploy_router)
 
 
 @app.get("/health")
