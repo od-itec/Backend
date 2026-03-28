@@ -307,14 +307,13 @@ class DinDManager:
             logger.info("Installing pack CLI inside DinD for user %s", user_id)
             install_cmd = (
                 "sh -c '"
-                "wget -qO /usr/local/bin/pack "
-                "https://github.com/buildpacks/pack/releases/download/v0.35.1/pack-v0.35.1-linux.tgz "
-                "&& tar xzf /usr/local/bin/pack -C /usr/local/bin/ "
-                "&& chmod +x /usr/local/bin/pack"
+                "wget -qO- "
+                "https://github.com/buildpacks/pack/releases/download/v0.40.2/pack-v0.40.2-linux.tgz "
+                "| tar xz -C /usr/local/bin/"
                 "' || "
                 "sh -c '"
                 "apk add --no-cache curl && "
-                "curl -sSL https://github.com/buildpacks/pack/releases/download/v0.35.1/pack-v0.35.1-linux.tgz "
+                "curl -sSL https://github.com/buildpacks/pack/releases/download/v0.40.2/pack-v0.40.2-linux.tgz "
                 "| tar xz -C /usr/local/bin/"
                 "'"
             )

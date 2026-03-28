@@ -13,7 +13,7 @@ RUN apk add --no-cache \
     && rm -rf /var/cache/apk/*
 
 # Install pack CLI (Cloud Native Buildpacks)
-ARG PACK_VERSION=0.35.1
+ARG PACK_VERSION=0.40.2
 RUN wget -qO- "https://github.com/buildpacks/pack/releases/download/v${PACK_VERSION}/pack-v${PACK_VERSION}-linux.tgz" \
     | tar xz -C /usr/local/bin/
 
