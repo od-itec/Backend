@@ -4,6 +4,7 @@ from cassandra.query import dict_factory
 from cassandra.policies import DCAwareRoundRobinPolicy
 from typing import Optional, List, Dict, Any
 import os
+import time
 from dotenv import load_dotenv
 import logging
 
@@ -26,29 +27,48 @@ class Database:
     
     def connect(self):
         """Connect to Database"""
-        try:
-            hosts = os.getenv("SCYLLA_HOSTS", "localhost").split(",")
-            port = int(os.getenv("SCYLLA_PORT", "9042"))
-            
-            # Create cluster connection
-            self._cluster = Cluster(
-                hosts,
-                port=port,
-                load_balancing_policy=DCAwareRoundRobinPolicy(local_dc='datacenter1')
-            )
-            
-            self._session = self._cluster.connect()
-            self._session.row_factory = dict_factory
-            
-            # Initialize keyspace and tables
-            self._init_keyspace()
-            self._init_tables()
-            
-            logger.info("Successfully connected to Database")
-            
-        except Exception as e:
-            logger.error(f"Failed to connect to Database: {e}")
-            raise
+        hosts = os.getenv("SCYLLA_HOSTS", "localhost").split(",")
+        port = int(os.getenv("SCYLLA_PORT", "9042"))
+        connect_retries = int(os.getenv("SCYLLA_CONNECT_RETRIES", "20"))
+        retry_delay_seconds = float(os.getenv("SCYLLA_RETRY_DELAY_SECONDS", "3"))
+
+        last_error = None
+        for attempt in range(1, connect_retries + 1):
+            try:
+                # Create cluster connection
+                self._cluster = Cluster(
+                    hosts,
+                    port=port,
+                    load_balancing_policy=DCAwareRoundRobinPolicy(local_dc='datacenter1')
+                )
+
+                self._session = self._cluster.connect()
+                self._session.row_factory = dict_factory
+
+                # Initialize keyspace and tables
+                self._init_keyspace()
+                self._init_tables()
+
+                logger.info("Successfully connected to Database")
+                return
+
+            except Exception as e:
+                last_error = e
+                logger.warning(
+                    f"Database connection attempt {attempt}/{connect_retries} failed: {e}"
+                )
+                if self._session:
+                    self._session.shutdown()
+                    self._session = None
+                if self._cluster:
+                    self._cluster.shutdown()
+                    self._cluster = None
+
+                if attempt < connect_retries:
+                    time.sleep(retry_delay_seconds)
+
+        logger.error(f"Failed to connect to Database after {connect_retries} attempts: {last_error}")
+        raise last_error
     
     def _init_keyspace(self):
         """Create keyspace if not exists"""
