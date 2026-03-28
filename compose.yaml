@@ -36,6 +36,8 @@ services:
     environment:
       DATABASE_URL: postgresql+asyncpg://itec:itec_secret@postgres:5432/itec_auth
       SCYLLA_HOSTS: scylla
+    ports:
+      - "8000:8000"
     networks:
       - scylla_network
 
