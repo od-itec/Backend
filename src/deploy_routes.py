@@ -88,7 +88,7 @@ async def _authenticate_ws(token: str) -> Optional[str]:
         return None
 
 
-@router.websocket("/ws/deploy/build")
+@router.websocket("/ws/build")
 async def build_stream_ws(
     websocket: WebSocket,
     token: str = Query(...),
