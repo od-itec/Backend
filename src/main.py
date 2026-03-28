@@ -6,11 +6,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from auth_config import auth_backend, current_active_user, fastapi_users
 from schemas import UserCreate, UserRead, UserUpdate
 from user_db import User, create_db_and_tables
+from db import init_database
+from file_routes import router as file_router
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     await create_db_and_tables()
+    init_database()
     yield
 
 
@@ -49,6 +52,7 @@ app.include_router(
     prefix="/users",
     tags=["users"],
 )
+app.include_router(file_router)
 
 
 @app.get("/health")

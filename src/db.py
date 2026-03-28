@@ -100,7 +100,7 @@ class Database:
         # Tokens table for refresh tokens (optional)
         create_tokens_table = """
             CREATE TABLE IF NOT EXISTS refresh_tokens (
-                token TEXT PRIMARY KEY,
+                "token" TEXT PRIMARY KEY,
                 username TEXT,
                 expires_at TIMESTAMP,
                 created_at TIMESTAMP
@@ -118,6 +118,25 @@ class Database:
             ) WITH CLUSTERING ORDER BY (attempt_time DESC)
         """
         self._session.execute(create_failed_logins_table)
+
+        # Files table - stores user workspace files/folders
+        create_files_table = """
+            CREATE TABLE IF NOT EXISTS files (
+                user_id UUID,
+                file_id UUID,
+                parent_id UUID,
+                type TEXT,
+                name TEXT,
+                content TEXT,
+                language TEXT,
+                is_expanded BOOLEAN,
+                position INT,
+                created_at TIMESTAMP,
+                updated_at TIMESTAMP,
+                PRIMARY KEY (user_id, file_id)
+            )
+        """
+        self._session.execute(create_files_table)
         
         logger.info("Tables created/verified successfully")
     
