@@ -13,13 +13,36 @@ services:
     command: --smp 1 --memory 750M --developer-mode 1
     networks:
       - scylla_network
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres-itec
+    environment:
+      POSTGRES_USER: itec
+      POSTGRES_PASSWORD: itec_secret
+      POSTGRES_DB: itec_auth
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - scylla_network
+
   backend:
     build: .
     depends_on:
       - scylla
+      - postgres
+    environment:
+      DATABASE_URL: postgresql+asyncpg://itec:itec_secret@postgres:5432/itec_auth
+      SCYLLA_HOSTS: scylla
+    networks:
+      - scylla_network
+
 networks:
   scylla_network:
     driver: bridge
 
 volumes:
   scylla_data:
+  postgres_data:
